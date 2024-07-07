@@ -102,8 +102,8 @@ public class StudentController extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         StudentDto studentDto = new StudentDto();
         String id = req.getParameter("id");
-        PrintWriter writer = resp.getWriter();
-        try (writer) {
+
+        try (PrintWriter writer = resp.getWriter()) {
             PreparedStatement preparedStatement = connection.prepareStatement(getStudent_statement);
             preparedStatement.setString(1, id);
             ResultSet resultSet = preparedStatement.executeQuery();
