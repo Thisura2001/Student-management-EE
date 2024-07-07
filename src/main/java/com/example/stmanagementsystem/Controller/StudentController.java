@@ -10,10 +10,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.io.PrintWriter;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -102,9 +100,30 @@ public class StudentController extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        super.doGet(req, resp);
-    }
+        StudentDto studentDto = new StudentDto();
+        String id = req.getParameter("id");
+        PrintWriter writer = resp.getWriter();
+        try (writer) {
+            PreparedStatement preparedStatement = connection.prepareStatement(getStudent_statement);
+            preparedStatement.setString(1, id);
+            ResultSet resultSet = preparedStatement.executeQuery();
 
+            while (resultSet.next()) {
+                studentDto.setId(resultSet.getString(1));
+                studentDto.setName(resultSet.getString(2));
+                studentDto.setCity(resultSet.getString(3));
+                studentDto.setEmail(resultSet.getString(4));
+                studentDto.setLevel(resultSet.getString(5));
+            }
+            resp.setContentType("application/json");// json type response ekk enw kyl kynnn onima ne eth dana eka hodai
+            System.out.println(studentDto);
+            Jsonb jsonb = JsonbBuilder.create();//create json object
+            jsonb.toJson(studentDto,resp.getWriter());//convert to json type (object , response eke writer)
+
+        } catch (Exception e) {
+            throw new ServletException(e);
+        }
+    }
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         super.doPut(req, resp);
