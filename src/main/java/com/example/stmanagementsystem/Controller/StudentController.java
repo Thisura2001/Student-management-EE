@@ -74,16 +74,14 @@ public class StudentController extends HttpServlet {
 
         //String id = UUID.randomUUID().toString();  generate ids
 
-        Jsonb jsonb = JsonbBuilder.create();// mulinma jsonBuilder ken jsonb type obeject ekk create krnw
-        List<StudentDto> studentList = jsonb.fromJson(req.getReader(), new ArrayList<StudentDto>() {
-        }.getClass().getGenericSuperclass());// req ewana json ek apita oni type ek deela ek bind krnw
+        Jsonb jsonb = JsonbBuilder.create();// mulinma jsonBuilder eken jsonb type obeject ekk create krnw( JsonBuilder is a tool or helper that makes it easier to create JSON objects)
+        List<StudentDto> studentList = jsonb.fromJson(req.getReader(), new ArrayList<StudentDto>() {}.getClass().getGenericSuperclass());// req ewana json ek apita oni type ek deela ek bind krnw
 
         //studentDTO.setId(id);// anith ithuru id kyn property ekt me dan dena value ek dagannw
 
-        for (StudentDto student : studentList
-        ) {
-            String id = UUID.randomUUID().toString();
-            student.setId(id);
+        for (StudentDto student : studentList) {
+//            String id = UUID.randomUUID().toString(); // to auto generate id
+//            student.setId(id);
             System.out.println(student);
 
 
@@ -99,8 +97,6 @@ public class StudentController extends HttpServlet {
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
-
-
         }
     }
 
