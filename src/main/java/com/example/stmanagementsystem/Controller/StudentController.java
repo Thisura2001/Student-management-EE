@@ -21,6 +21,8 @@ public class StudentController extends HttpServlet {
     Connection connection;
     static String save_statement = "INSERT INTO student VALUES (?,?,?,?,?)";
     static String getStudent_statement = "SELECT * FROM student WHERE id=?";
+    static String deleteStudent = "DELETE FROM student WHERE id=?";
+    static String updateStudent = "UPDATE student SET name = ?, city = ?, email = ?, level = ? WHERE id = ?";
     @Override
     public void init() throws ServletException {
       try {
@@ -73,7 +75,8 @@ public class StudentController extends HttpServlet {
         //String id = UUID.randomUUID().toString();  generate ids
 
         Jsonb jsonb = JsonbBuilder.create();// mulinma jsonBuilder eken jsonb type obeject ekk create krnw( JsonBuilder is a tool or helper that makes it easier to create JSON objects)
-        List<StudentDto> studentList = jsonb.fromJson(req.getReader(), new ArrayList<StudentDto>() {}.getClass().getGenericSuperclass());// req ewana json ek apita oni type ek deela ek bind krnw
+        List<StudentDto> studentList = jsonb.fromJson(req.getReader(),
+                new ArrayList<StudentDto>() {}.getClass().getGenericSuperclass());// req ewana json ek apita oni type ek deela ek bind krnw
 
         //studentDTO.setId(id);// anith ithuru id kyn property ekt me dan dena value ek dagannw
 
@@ -126,11 +129,56 @@ public class StudentController extends HttpServlet {
     }
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        super.doPut(req, resp);
+        Jsonb jsonb = JsonbBuilder.create();
+        StudentDto studentDto = jsonb.fromJson(req.getReader(), StudentDto.class);
+        resp.setContentType("application/json");
+        PrintWriter writer = resp.getWriter();
+
+        if (studentDto.getId() == null||studentDto.getId().isEmpty()){
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            writer.println("Id missing or empty");
+            jsonb.toJson(studentDto,writer);
+        }
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement(updateStudent);
+            preparedStatement.setString(1,studentDto.getName());
+            preparedStatement.setString(2,studentDto.getCity());
+            preparedStatement.setString(3,studentDto.getEmail());
+            preparedStatement.setString(4,studentDto.getLevel());
+            preparedStatement.setString(5,studentDto.getId());
+            int affectRow = preparedStatement.executeUpdate();
+            if (affectRow>0){
+                writer.println(studentDto+" "+ "Update Successful !!");
+            }else {
+                writer.println("Student not updated Try again");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        super.doDelete(req, resp);
+        String id = req.getParameter("id");
+        Jsonb jsonb = JsonbBuilder.create();
+        resp.setContentType("application/json");
+        PrintWriter writer = resp.getWriter();
+        if (id == null||id.isEmpty()){
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            writer.println("Id missing or empty");
+        }
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement(deleteStudent);
+            preparedStatement.setString(1,id);
+            int affectRow = preparedStatement.executeUpdate();
+            if (affectRow>0){
+                writer.println(id+" "+ "Delete Successful !!");
+            }else {
+                writer.println("Student not deleted Try again");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
