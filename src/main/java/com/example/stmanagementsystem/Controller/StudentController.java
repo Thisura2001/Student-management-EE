@@ -106,7 +106,7 @@ public class StudentController extends HttpServlet {
         StudentDto studentDto = new StudentDto();
         String id = req.getParameter("id");
         PrintWriter writer = resp.getWriter();
-        try (writer) {
+        try {
             PreparedStatement preparedStatement = connection.prepareStatement(getStudent_statement);
             preparedStatement.setString(1, id);
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -160,8 +160,8 @@ public class StudentController extends HttpServlet {
 
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        StudentDto studentDto = new StudentDto();
         String id = req.getParameter("id");
-        Jsonb jsonb = JsonbBuilder.create();
         resp.setContentType("application/json");
         PrintWriter writer = resp.getWriter();
         if (id == null||id.isEmpty()){
@@ -172,6 +172,8 @@ public class StudentController extends HttpServlet {
             PreparedStatement preparedStatement = connection.prepareStatement(deleteStudent);
             preparedStatement.setString(1,id);
             int affectRow = preparedStatement.executeUpdate();
+            Jsonb jsonb = JsonbBuilder.create();
+            jsonb.toJson(studentDto,writer);
             if (affectRow>0){
                 writer.println(id+" "+ "Delete Successful !!");
             }else {
