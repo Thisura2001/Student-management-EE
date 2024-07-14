@@ -1,9 +1,14 @@
 package com.example.stmanagementsystem.Controller;
 
+import Utill.UtilProcess;
 import com.example.stmanagementsystem.DTO.StudentDto;
+import com.example.stmanagementsystem.Dao.DaoImpl.StudentDaoImpl;
+import com.example.stmanagementsystem.Dao.StudentDao;
+import jakarta.json.JsonException;
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebInitParam;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,7 +21,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@WebServlet("/Student")
+@WebServlet(value = "/Student"
+//@initParams = { //servlet config
+//        @WebInitParam(name = "driver-class",value = "com.mysql.cj.jdbc.Driver"),
+//        @WebInitParam(name = "dbURL",value = "jdbc:mysql://localhost:3306/student"),
+//        @WebInitParam(name = "dbUserName",value = "root"),
+//        @WebInitParam(name = "dbPassword",value = "1234")
+//    }
+)
 public class StudentController extends HttpServlet {
     Connection connection;
     static String save_statement = "INSERT INTO student VALUES (?,?,?,?,?)";
@@ -81,8 +93,7 @@ public class StudentController extends HttpServlet {
         //studentDTO.setId(id);// anith ithuru id kyn property ekt me dan dena value ek dagannw
 
         for (StudentDto student : studentList) {
-//            String id = UUID.randomUUID().toString(); // to auto generate id
-//            student.setId(id);
+            student.setId(UtilProcess.generateID());
             System.out.println(student);
 
 
@@ -100,31 +111,18 @@ public class StudentController extends HttpServlet {
             }
         }
     }
-
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        StudentDto studentDto = new StudentDto();
-        String id = req.getParameter("id");
-        PrintWriter writer = resp.getWriter();
-        try {
-            PreparedStatement preparedStatement = connection.prepareStatement(getStudent_statement);
-            preparedStatement.setString(1, id);
-            ResultSet resultSet = preparedStatement.executeQuery();
-
-            while (resultSet.next()) {
-                studentDto.setId(resultSet.getString(1));
-                studentDto.setName(resultSet.getString(2));
-                studentDto.setCity(resultSet.getString(3));
-                studentDto.setEmail(resultSet.getString(4));
-                studentDto.setLevel(resultSet.getString(5));
-            }
-            resp.setContentType("application/json");// json type response ekk enw kyl kynnn onima ne eth dana eka hodai
-            System.out.println(studentDto);
-            Jsonb jsonb = JsonbBuilder.create();//create json object
-            jsonb.toJson(studentDto,resp.getWriter());//convert to json type (object , response eke writer)
-
-        } catch (Exception e) {
-            throw new ServletException(e);
+        var studentId = req.getParameter("id");
+        var getStudent = new StudentDaoImpl();
+        try (var writer = resp.getWriter()){ //Try-With-Resources Statement(writer eka auto close wenwa mema dmmama dmme natat awlk na e unt dna eka hody)
+            var student = getStudent.getStudent(studentId, connection);
+            System.out.println(student);
+            resp.setContentType("application/json");
+            var jsonb = JsonbBuilder.create();
+            jsonb.toJson(student,writer);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
     }
     @Override
@@ -133,27 +131,15 @@ public class StudentController extends HttpServlet {
         StudentDto studentDto = jsonb.fromJson(req.getReader(), StudentDto.class);
         resp.setContentType("application/json");
         PrintWriter writer = resp.getWriter();
+        StudentDaoImpl studentDaoImpl = new StudentDaoImpl();
+        var UpdateStudent = studentDaoImpl.updateStudent(studentDto.getId(),studentDto,connection);
 
-        if (studentDto.getId() == null||studentDto.getId().isEmpty()){
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            writer.println("Id missing or empty");
-            jsonb.toJson(studentDto,writer);
-        }
-        try {
-            PreparedStatement preparedStatement = connection.prepareStatement(updateStudent);
-            preparedStatement.setString(1,studentDto.getName());
-            preparedStatement.setString(2,studentDto.getCity());
-            preparedStatement.setString(3,studentDto.getEmail());
-            preparedStatement.setString(4,studentDto.getLevel());
-            preparedStatement.setString(5,studentDto.getId());
-            int affectRow = preparedStatement.executeUpdate();
-            if (affectRow>0){
-                writer.println(studentDto+" "+ "Update Successful !!");
-            }else {
-                writer.println("Student not updated Try again");
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        if (UpdateStudent){
+            writer.println(studentDto+" "+ "Update Successful !!");
+            resp.setStatus(HttpServletResponse.SC_ACCEPTED);
+        }else {
+            writer.println("Student not updated Try again");
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
         }
 
     }
@@ -164,23 +150,14 @@ public class StudentController extends HttpServlet {
         String id = req.getParameter("id");
         resp.setContentType("application/json");
         PrintWriter writer = resp.getWriter();
-        if (id == null||id.isEmpty()){
+        StudentDaoImpl studentDaoImpl = new StudentDaoImpl();
+        var deleteStudent =studentDaoImpl.deleteStudent(id,connection);
+        if (deleteStudent){
+            resp.setStatus(HttpServletResponse.SC_OK);
+            writer.println(studentDto+" "+"Delete Successful !!");
+        }else {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            writer.println("Id missing or empty");
-        }
-        try {
-            PreparedStatement preparedStatement = connection.prepareStatement(deleteStudent);
-            preparedStatement.setString(1,id);
-            int affectRow = preparedStatement.executeUpdate();
-            Jsonb jsonb = JsonbBuilder.create();
-            jsonb.toJson(studentDto,writer);
-            if (affectRow>0){
-                writer.println(id+" "+ "Delete Successful !!");
-            }else {
-                writer.println("Student not deleted Try again");
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+            writer.println("Student not Deleted Try again !!");
         }
     }
 }
