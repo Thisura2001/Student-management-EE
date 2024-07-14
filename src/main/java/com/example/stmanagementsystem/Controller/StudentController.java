@@ -61,54 +61,29 @@ public class StudentController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         //save student
-
-        if (!req.getContentType().toLowerCase().startsWith("application/json") || req.getContentType() == null) {
-            resp.sendError(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
+        if(!req.getContentType().toLowerCase().startsWith("application/json")|| req.getContentType() == null){
+            //send error
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
         }
-/*
-        BufferedReader reader=req.getReader();
-        PrintWriter writer = resp.getWriter();
-        StringBuilder stringBuilder = new StringBuilder();
-        reader.lines().forEach(line->stringBuilder.append(line+"\n"));
-        System.out.println(stringBuilder.toString());
-        writer.write(stringBuilder.toString());
-        writer.close();*/
-
-        //json manipulation with Parsan
-
-       /* JsonReader reader = Json.createReader(req.getReader());
-        //JsonObject jsonObject = reader.readObject();
-        JsonArray jsonValues = reader.readArray();
-        for (int i=0; i<jsonValues.size();i++){
-            System.out.println(jsonValues.getJsonObject(i).getString("age"));
-        }*/
-
-
-        //String id = UUID.randomUUID().toString();  generate ids
-
-        Jsonb jsonb = JsonbBuilder.create();// mulinma jsonBuilder eken jsonb type obeject ekk create krnw( JsonBuilder is a tool or helper that makes it easier to create JSON objects)
-        List<StudentDto> studentList = jsonb.fromJson(req.getReader(),
-                new ArrayList<StudentDto>() {}.getClass().getGenericSuperclass());// req ewana json ek apita oni type ek deela ek bind krnw
-
-        //studentDTO.setId(id);// anith ithuru id kyn property ekt me dan dena value ek dagannw
-
-        for (StudentDto student : studentList) {
-            student.setId(UtilProcess.generateID());
-            System.out.println(student);
-
-
-            try {
-                PreparedStatement preparedStatement = connection.prepareStatement(save_statement);
-                preparedStatement.setString(1,student.getId());
-                preparedStatement.setString(2,student.getName());
-                preparedStatement.setString(3,student.getCity());
-                preparedStatement.setString(4,student.getEmail());
-                preparedStatement.setString(5,student.getLevel());
-                preparedStatement.executeUpdate();
-
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
+        // Persist Data
+        try (var writer = resp.getWriter()){
+            Jsonb jsonb = JsonbBuilder.create();// mulinma jsonBuilder eken jsonb type obeject ekk create krnw( JsonBuilder is a tool or helper that makes it easier to create JSON objects)
+            List<StudentDto> studentList = jsonb.fromJson(req.getReader(), new ArrayList<StudentDto>() {}.getClass().getGenericSuperclass());// req ewana json ek apita oni type ek deela ek bind krnw
+            for (StudentDto studentDto:studentList) {
+            studentDto.setId(UtilProcess.generateID());
+            var save = new StudentDaoImpl();
+            if (save.saveStudent(studentDto, connection)){
+                writer.write("Student saved successfully");
+                resp.setStatus(HttpServletResponse.SC_CREATED);
+            }else {
+                writer.write("Save student failed");
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
+                }
             }
+
+        } catch (JsonException e) {
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            throw new RuntimeException(e);
         }
     }
     @Override
