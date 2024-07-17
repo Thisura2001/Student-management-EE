@@ -1,15 +1,12 @@
 package com.example.stmanagementsystem.Dao.DaoImpl;
 
 import com.example.stmanagementsystem.DTO.StudentDto;
-import com.example.stmanagementsystem.Dao.StudentDao;
-import jakarta.json.bind.Jsonb;
-import jakarta.json.bind.JsonbBuilder;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-public class  StudentDaoImpl implements StudentDao {
+public final class  StudentDaoImpl implements StudentDao {
     static String SAVE_STUDENT = "INSERT INTO student (id,name,city,email,level) VALUES (?,?,?,?,?)";
     static String GET_STUDENT = "SELECT * FROM student WHERE id=?";
     static String UPDATE_STUDENT = "UPDATE student SET name=?,city=?,email=?,level=? WHERE id=?";
