@@ -27,24 +27,12 @@ public class StudentController extends HttpServlet {
     Connection connection;
     @Override
     public void init() throws ServletException {
-//      try {
-//          var initialContext = new InitialContext();
-//          DataSource pool = (DataSource) initialContext.lookup("java:comp/env/jdbc/studentRegistration");
-//         this.connection =  pool.getConnection();
-//
-//      } catch (SQLException | NamingException e) {
-//          throw new RuntimeException(e);
-//      }
-//    }
         try {
-            var Driver = getServletContext().getInitParameter("driver-class");
-            var url = getServletContext().getInitParameter("dbURL");
-            var userName = getServletContext().getInitParameter("dbUserName");
-            var password = getServletContext().getInitParameter("dbPassword");
-            Class.forName(Driver);
-            this.connection =  DriverManager.getConnection(url,userName,password);
-        } catch (ClassNotFoundException | SQLException e) {
-            throw new RuntimeException(e);
+            var ctx = new InitialContext();
+            DataSource pool = (DataSource) ctx.lookup("java:comp/env/jdbc/stuRegistration");
+            this.connection =  pool.getConnection();
+        }catch (NamingException | SQLException e){
+            e.printStackTrace();
         }
     }
 
