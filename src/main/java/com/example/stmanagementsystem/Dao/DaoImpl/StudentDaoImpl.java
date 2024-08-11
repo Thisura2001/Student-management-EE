@@ -35,14 +35,14 @@ public final class  StudentDaoImpl implements StudentDao {
     @Override
     public boolean saveStudent(StudentDto student, Connection connection) {
         try {
-            PreparedStatement preparedStatement = connection.prepareStatement(SAVE_STUDENT);
-            preparedStatement.setString(1,student.getId());
-            preparedStatement.setString(2,student.getName());
-            preparedStatement.setString(3,student.getCity());
-            preparedStatement.setString(4,student.getEmail());
-            preparedStatement.setString(5,student.getLevel());
-            return preparedStatement.executeUpdate()>0;
+            var ps = connection.prepareStatement(SAVE_STUDENT);
+            ps.setString(1, student.getId());
+            ps.setString(2, student.getName());
+            ps.setString(3, student.getCity());
+            ps.setString(4, student.getEmail());
+            ps.setString(5, student.getLevel());
 
+            return ps.executeUpdate() !=0;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
