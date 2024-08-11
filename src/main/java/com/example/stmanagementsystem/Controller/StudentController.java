@@ -54,62 +54,7 @@ public class StudentController extends HttpServlet {
         //Todo: SAVE STUDENT;
         if(!req.getContentType().toLowerCase().startsWith("application/json")||req.getContentType()==null){
             resp.sendError(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
-        }  /*Chek Json type*/
-        /*process*/
-        /*BufferedReader reader=req.getReader();
-        StringBuilder sb =new StringBuilder();
-        var writer= resp.getWriter();
-        reader.lines().forEach(line->sb.append(line+"\n"));
-        System.out.println(sb);
-        writer.write(sb.toString());
-        writer.close();*/
-
-        /*jason manipulate with parson*/
-        /*JsonReader reader1= Json.createReader(req.getReader());*/
-        /*JsonObject jsonObject= reader1.readObject();
-        System.out.println(jsonObject.getString("email"));*/
-
-        /*----------*/
-        /*JsonReader reader1= Json.createReader(req.getReader());
-        JsonArray jArray = reader1.readArray();
-        for (int i = 0; i < jArray.size(); i++) {
-            JsonObject jsonObject =jArray.getJsonObject(i);
-            System.out.println(jsonObject.getString("name"));
-        }*/
-
-
-        /*---Organize code ADD DAO----*/
-
-       /* String id = UUID.randomUUID().toString();
-        Jsonb jsonb= JsonbBuilder.create();
-        StudentDTO studentDTO= jsonb.fromJson(req.getReader(),StudentDTO.class);
-        studentDTO.setId(id);
-        System.out.println(studentDTO);*/
-
-        /*----add dto ------*/
-        /*Jsonb jsonb= JsonbBuilder.create();
-        List<StudentDTO>studentDTOList = jsonb.fromJson(req.getReader(),new ArrayList<StudentDTO>(){
-        }.getClass().getGenericSuperclass());
-        studentDTOList.forEach(System.out::println);*/
-
-
-        /*Origanize code ADD DAO*/
-
-        /*try {
-            var ps = connection.prepareStatement(SAVE_STUDENT);
-            ps.setString(1, studentDTO.getId());
-            ps.setString(2, studentDTO.getName());
-            ps.setString(3, studentDTO.getCity());
-            ps.setString(4, studentDTO.getEmail());
-            if(ps.executeUpdate() != 0 ){
-                resp.getWriter().write("Student Saved");
-            } else {
-                resp.getWriter().write("Student Not Saved");
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }*/
-
+        }
         try (var writer = resp.getWriter()){
             String id = UUID.randomUUID().toString();
             Jsonb jsonb= JsonbBuilder.create();
