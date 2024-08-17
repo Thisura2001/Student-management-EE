@@ -44,10 +44,8 @@ public class StudentController extends HttpServlet {
             resp.sendError(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
         }
         try (var writer = resp.getWriter()){
-            String id = UUID.randomUUID().toString();
             Jsonb jsonb= JsonbBuilder.create();
             StudentDto studentDTO= jsonb.fromJson(req.getReader(),StudentDto.class); /*getreader eken json eka read kara frmJson eken ema josn eka bind karai.*/
-            studentDTO.setId(id);
             System.out.println(studentDTO);
 
             var saveData = new StudentDaoImpl();
@@ -68,9 +66,9 @@ public class StudentController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         var studentId = req.getParameter("id");
-        var getStudent = new StudentDaoImpl();
+        var students = new StudentDaoImpl();
         try (var writer = resp.getWriter()){ //Try-With-Resources Statement(writer eka auto close wenwa mema dmmama dmme natat awlk na e unt dna eka hody)
-            var student = getStudent.getStudent(studentId, connection);
+            var student = students.getStudent(studentId, connection);
             System.out.println(student);
             resp.setContentType("application/json");
             var jsonb = JsonbBuilder.create();
