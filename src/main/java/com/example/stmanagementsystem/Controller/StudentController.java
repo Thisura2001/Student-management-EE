@@ -3,6 +3,7 @@ package com.example.stmanagementsystem.Controller;
 import Utill.UtilProcess;
 import com.example.stmanagementsystem.DTO.StudentDto;
 import com.example.stmanagementsystem.Dao.DaoImpl.StudentDaoImpl;
+import com.mysql.cj.log.LogFactory;
 import jakarta.json.JsonException;
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
@@ -11,6 +12,8 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -21,17 +24,19 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-
-@WebServlet(value = "/student")
+@WebServlet(value = "/student",loadOnStartup = 2)
 public class StudentController extends HttpServlet {
+   static Logger logger =  LoggerFactory.getLogger(StudentController.class);
     Connection connection;
     @Override
     public void init() throws ServletException {
+        logger.info("Initializing StudentController");
         try {
             var ctx = new InitialContext();
             DataSource pool = (DataSource) ctx.lookup("java:comp/env/jdbc/stuRegistration");
             this.connection =  pool.getConnection();
         }catch (NamingException | SQLException e){
+            logger.error("Init failed with ",e.getMessage());
             e.printStackTrace();
         }
     }
